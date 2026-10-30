@@ -1622,7 +1622,7 @@ def format_email_body(results, previous_rates):
     return "\n".join(lines)
 
 
-FONT_STACK = "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+FONT_STACK = "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif"
 
 
 def format_email_html(results, previous_rates):
@@ -1643,22 +1643,26 @@ def format_email_html(results, previous_rates):
     today = now_vn().strftime("%A, %B %d %Y - %H:%M")
 
     # --- Palette (named, not incidental) ---
-    INK = "#111827"
-    SLATE = "#6B7280"
-    CANVAS = "#F8F9FB"
+    # Same colours as the other bots' emails and the dashboard: neutral surfaces,
+    # one blue accent, colour kept for the data and the status badges.
+    INK = "#1D2129"
+    SLATE = "#596170"
+    MUTED = "#6E7581"
+    CANVAS = "#F4F5F7"
     WHITE = "#FFFFFF"
-    BORDER = "#E5E7EB"
-    INDIGO, INDIGO_TINT = "#4F46E5", "#EEF2FF"
-    EMERALD, EMERALD_TINT = "#059669", "#ECFDF5"
-    AMBER, AMBER_TINT = "#D97706", "#FFFBEB"
-    CHANGED_BG, CHANGED_FG = "#FEF3C7", "#92400E"
-    ERROR_BG, ERROR_FG = "#FEE2E2", "#991B1B"
-    STALE_BG, STALE_FG = "#E5E7EB", "#475569"
+    BORDER = "#E2E4E8"
+    HEAD_BG = "#F7F8FA"
+    INDIGO, INDIGO_TINT = "#3B5BDB", "#EDF0FC"
+    EMERALD, EMERALD_TINT = "#1A7F4B", "#E5F3EB"
+    AMBER, AMBER_TINT = "#9A5B06", "#FCF2DF"
+    CHANGED_BG, CHANGED_FG = "#FCF2DF", "#9A5B06"
+    ERROR_BG, ERROR_FG = "#FBE9E7", "#C6362B"
+    STALE_BG, STALE_FG = "#F1F2F4", "#596170"
 
     def badge(text, bg, fg):
         return (
             f'<span style="display:inline-block;margin-top:6px;font-size:11.5px;'
-            f'color:{fg};background:{bg};padding:3px 10px;border-radius:999px;'
+            f'color:{fg};background:{bg};padding:2px 9px;border-radius:999px;'
             f'font-weight:600;font-family:{FONT_STACK};">{text}</span>'
         )
 
@@ -1681,35 +1685,23 @@ def format_email_html(results, previous_rates):
         )
 
     def name_with_avatar(name, bg, fg):
-        return (
-            f'{avatar_circle(esc(initials(name)), bg, fg)}'
-            f'<span style="vertical-align:middle;">{esc(name)}</span>'
-        )
+        # Plain name: the coloured initials circles were dropped with the rest of the decoration.
+        return f'<span style="vertical-align:middle;">{esc(name)}</span>'
 
     def section_header(icon, title, subtitle, accent, tint):
         return f"""
         <tr>
-          <td style="padding:18px 22px;border-bottom:1px solid {BORDER};">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td width="46" style="padding:0;">
-                  <div style="width:34px;height:34px;border-radius:9px;background:{tint};
-                              text-align:center;line-height:34px;font-size:16px;">{icon}</div>
-                </td>
-                <td style="padding:0 0 0 10px;">
-                  <div style="font-family:{FONT_STACK};font-size:16px;font-weight:700;color:{INK};">{title}</div>
-                  <div style="font-family:{FONT_STACK};font-size:12px;color:{SLATE};margin-top:2px;">{subtitle}</div>
-                </td>
-              </tr>
-            </table>
+          <td style="padding:14px 16px;border-bottom:1px solid {BORDER};">
+            <div style="font-family:{FONT_STACK};font-size:15px;font-weight:600;color:{INK};">{title}</div>
+            <div style="font-family:{FONT_STACK};font-size:12px;color:{SLATE};margin-top:2px;">{subtitle}</div>
           </td>
         </tr>"""
 
     def col_header(label, accent_text):
         return (
-            f'<td style="padding:14px 20px 8px;font-family:{FONT_STACK};font-size:11px;'
-            f'text-transform:uppercase;letter-spacing:0.05em;font-weight:700;color:{accent_text};'
-            f'border-bottom:2px solid {BORDER};">{label}</td>'
+            f'<td style="padding:7px 16px;font-family:{FONT_STACK};font-size:12px;'
+            f'font-weight:600;color:{SLATE};background:{HEAD_BG};'
+            f'border-bottom:1px solid {BORDER};">{label}</td>'
         )
 
     def rate_cell(d, prev_val, border, accent):
@@ -1721,15 +1713,15 @@ def format_email_html(results, previous_rates):
             if is_stale_annual(d["as_of"]):
                 stale_badge = "<br>" + badge("annual figure &middot; may be outdated", STALE_BG, STALE_FG)
             return f"""
-              <td style="padding:14px 20px;{border}vertical-align:top;font-family:{FONT_STACK};">
-                <span style="font-weight:800;font-size:26px;letter-spacing:-0.02em;color:{accent};">{esc(d['rate'])}</span>
+              <td style="padding:12px 16px;{border}vertical-align:top;font-family:{FONT_STACK};">
+                <span style="font-weight:600;font-size:20px;color:{INK};">{esc(d['rate'])}</span>
                 <div style="font-size:12px;color:{SLATE};margin-top:3px;">{esc(d.get('as_of',''))}</div>
                 {stale_badge}{change_badge}
               </td>"""
         err = esc(d.get("error", "unknown error"))
         return f"""
-              <td style="padding:14px 20px;{border}vertical-align:top;font-family:{FONT_STACK};">
-                <span style="font-size:13px;color:#9CA3AF;font-style:italic;">Unavailable</span><br>
+              <td style="padding:12px 16px;{border}vertical-align:top;font-family:{FONT_STACK};">
+                <span style="font-size:13px;color:{MUTED};font-style:italic;">Unavailable</span><br>
                 {badge(err, ERROR_BG, ERROR_FG)}
               </td>"""
 
@@ -1744,7 +1736,7 @@ def format_email_html(results, previous_rates):
         border = "" if i == len(SOURCES) - 1 else f"border-bottom:1px solid {BORDER};"
         row = f"""
             <tr>
-              <td style="padding:14px 20px;{border}vertical-align:top;font-family:{FONT_STACK};
+              <td style="padding:12px 16px;{border}vertical-align:top;font-family:{FONT_STACK};
                          font-size:14px;font-weight:600;color:{INK};width:30%;">{name_with_avatar(name, INDIGO_TINT, INDIGO)}</td>
               {rate_cell(r.get('policy', {}), prev.get('policy'), border, INDIGO)}
               {rate_cell(r.get('deposit', {}), prev.get('deposit'), border, INDIGO)}
@@ -1754,8 +1746,8 @@ def format_email_html(results, previous_rates):
     shortened = banks_to_shorten(commercial_banks)
     commercial_table_style = f"font-family:{FONT_STACK};"
     col_label_style = (
-        f"padding:6px 20px;background:{EMERALD_TINT};font-size:11px;text-transform:uppercase;"
-        f"letter-spacing:0.03em;font-weight:700;color:{EMERALD};border-bottom:1px solid {BORDER};"
+        f"padding:6px 16px;background:{HEAD_BG};font-size:12px;"
+        f"font-weight:600;color:{SLATE};border-bottom:1px solid {BORDER};"
     )
 
     def bank_block_html(name, r, is_last_bank):
@@ -1764,9 +1756,9 @@ def format_email_html(results, previous_rates):
             border = "" if is_last_bank else f"border-bottom:1px solid {BORDER};"
             return f"""
             <tr>
-              <td colspan="3" style="padding:16px 20px;{border}font-family:{FONT_STACK};">
-                <div style="font-size:14px;font-weight:700;color:{INK};margin-bottom:4px;">{name_with_avatar(name, EMERALD_TINT, EMERALD)}</div>
-                <span style="font-size:13px;color:#9CA3AF;font-style:italic;">Unavailable</span><br>
+              <td colspan="3" style="padding:12px 16px;{border}font-family:{FONT_STACK};">
+                <div style="font-size:14px;font-weight:600;color:{INK};margin-bottom:4px;">{name_with_avatar(name, EMERALD_TINT, EMERALD)}</div>
+                <span style="font-size:13px;color:{MUTED};font-style:italic;">Unavailable</span><br>
                 {badge(err, ERROR_BG, ERROR_FG)}
               </td>
             </tr>"""
@@ -1774,9 +1766,9 @@ def format_email_html(results, previous_rates):
         shown, hidden = terms_to_show(r["terms"], prev_commercial_terms(previous_rates, name), name in shortened)
         rows = [f"""
             <tr>
-              <td colspan="3" style="padding:16px 20px 4px;background:{EMERALD_TINT};font-family:{FONT_STACK};">
-                <div style="font-size:14px;font-weight:700;color:{INK};">{name_with_avatar(name, WHITE, EMERALD)}</div>
-                <div style="font-size:11px;color:{SLATE};margin-left:32px;">as of {esc(r['as_of'])}</div>
+              <td colspan="3" style="padding:14px 16px 6px;font-family:{FONT_STACK};">
+                <div style="font-size:14px;font-weight:600;color:{INK};">{name_with_avatar(name, WHITE, EMERALD)}</div>
+                <div style="font-size:12px;color:{SLATE};">as of {esc(r['as_of'])}</div>
               </td>
             </tr>
             <tr>
@@ -1798,14 +1790,14 @@ def format_email_html(results, previous_rates):
             if prev_t and rate_changed(prev_t.get("online"), t["online"]):
                 online_badge = "<br>" + badge(f"was {esc(prev_t['online'])}", CHANGED_BG, CHANGED_FG)
             rows.append(
-                f'\n<tr><td style="padding:8px 20px;{border}font-size:13px;color:{SLATE};">{esc(t["term"])}</td>'
-                f'<td style="padding:8px 20px;{border}font-size:15px;font-weight:700;color:{INK};">{esc(t["counter"])}{counter_badge}</td>'
-                f'<td style="padding:8px 20px;{border}font-size:15px;font-weight:700;color:{EMERALD};">{esc(t["online"])}{online_badge}</td></tr>'
+                f'\n<tr><td style="padding:7px 16px;{border}font-size:13px;color:{SLATE};">{esc(t["term"])}</td>'
+                f'<td style="padding:7px 16px;{border}font-size:14px;font-weight:600;color:{INK};">{esc(t["counter"])}{counter_badge}</td>'
+                f'<td style="padding:7px 16px;{border}font-size:14px;font-weight:600;color:{EMERALD};">{esc(t["online"])}{online_badge}</td></tr>'
             )
         if hidden:
             border = "" if is_last_bank else f"border-bottom:1px solid {BORDER};"
             rows.append(
-                f'\n<tr><td colspan="3" style="padding:8px 20px;{border}font-size:12px;color:{SLATE};font-style:italic;">'
+                f'\n<tr><td colspan="3" style="padding:7px 16px;{border}font-size:12px;color:{SLATE};font-style:italic;">'
                 f"Key terms only &middot; {hidden} more rows on the bank's site</td></tr>"
             )
         return "".join(rows)
@@ -1822,7 +1814,7 @@ def format_email_html(results, previous_rates):
         border = "" if i == len(SPECIAL_PRODUCT_SOURCES) - 1 else f"border-bottom:1px solid {BORDER};"
         special_rows_html.append(f"""
             <tr>
-              <td style="padding:14px 20px;{border}vertical-align:top;font-family:{FONT_STACK};
+              <td style="padding:12px 16px;{border}vertical-align:top;font-family:{FONT_STACK};
                          font-size:14px;font-weight:600;color:{INK};width:40%;">{name_with_avatar(name, AMBER_TINT, AMBER)}</td>
               {rate_cell(r, prev_val, border, AMBER)}
             </tr>""")
@@ -1836,8 +1828,8 @@ def format_email_html(results, previous_rates):
             for name, url in source_list
         )
         return f"""
-            <div style="font-family:{FONT_STACK};font-size:11px;text-transform:uppercase;font-weight:700;
-                        letter-spacing:0.05em;color:{SLATE};margin-bottom:8px;">{title}</div>
+            <div style="font-family:{FONT_STACK};font-size:12px;font-weight:600;
+                        color:{SLATE};margin-bottom:6px;">{title}</div>
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
               {rows}
             </table>"""
@@ -1848,9 +1840,9 @@ def format_email_html(results, previous_rates):
   <tr>
     <td align="center">
       <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0"
-             style="max-width:640px;width:100%;background:{WHITE};border-radius:14px;
-                    overflow:hidden;border:1px solid {BORDER};border-left:4px solid {INDIGO};">
-        {section_header("&#127963;&#65039;", "Central Bank Interest Rates", esc(today) + " (Vietnam time)", INDIGO, INDIGO_TINT)}
+             style="max-width:640px;width:100%;background:{WHITE};border-radius:8px;
+                    overflow:hidden;border:1px solid {BORDER};">
+        {section_header("", "Central Bank Interest Rates", esc(today) + " (Vietnam time)", INDIGO, INDIGO_TINT)}
         <tr>
           <td>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -1865,8 +1857,8 @@ def format_email_html(results, previous_rates):
         </tr>
         <tr>
           <td style="padding:4px 24px 0;">
-            <div style="font-family:{FONT_STACK};font-size:12px;color:{SLATE};
-                        background:{INDIGO_TINT};border-radius:10px;padding:12px 14px;margin-top:16px;">
+            <div style="font-family:{FONT_STACK};font-size:12px;color:{SLATE};line-height:1.5;
+                        background:{HEAD_BG};border:1px solid {BORDER};border-radius:6px;padding:10px 12px;margin-top:16px;">
               <strong style="color:{INK};">Policy rate</strong> = what the central bank charges
               commercial banks. <strong style="color:{INK};">Deposit rate</strong> = the average
               rate commercial banks pay savers - usually higher, and set independently by each bank.
@@ -1884,9 +1876,9 @@ def format_email_html(results, previous_rates):
       </table>
 
       <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0"
-             style="max-width:640px;width:100%;background:{WHITE};border-radius:14px;
-                    overflow:hidden;border:1px solid {BORDER};border-left:4px solid {EMERALD};margin-top:20px;">
-        {section_header("&#127974;", "Vietnam Commercial Banks", "All terms &middot; at counter vs online (%/year)", EMERALD, EMERALD_TINT)}
+             style="max-width:640px;width:100%;background:{WHITE};border-radius:8px;
+                    overflow:hidden;border:1px solid {BORDER};margin-top:16px;">
+        {section_header("", "Vietnam Commercial Banks", "All terms &middot; at counter vs online (%/year)", EMERALD, EMERALD_TINT)}
         <tr>
           <td>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="{commercial_table_style}">
@@ -1902,13 +1894,13 @@ def format_email_html(results, previous_rates):
       </table>
 
       <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0"
-             style="max-width:640px;width:100%;background:{WHITE};border-radius:14px;
-                    overflow:hidden;border:1px solid {BORDER};border-left:4px solid {AMBER};margin-top:20px;">
-        {section_header("&#128142;", "Special Products", "Not regular savings &middot; see note", AMBER, AMBER_TINT)}
+             style="max-width:640px;width:100%;background:{WHITE};border-radius:8px;
+                    overflow:hidden;border:1px solid {BORDER};margin-top:16px;">
+        {section_header("", "Special Products", "Not regular savings &middot; see note", AMBER, AMBER_TINT)}
         <tr>
           <td style="padding:16px 20px 4px;">
-            <div style="font-family:{FONT_STACK};font-size:12px;color:{SLATE};
-                        background:{AMBER_TINT};border-radius:10px;padding:12px 14px;">
+            <div style="font-family:{FONT_STACK};font-size:12px;color:{SLATE};line-height:1.5;
+                        background:{HEAD_BG};border:1px solid {BORDER};border-radius:6px;padding:10px 12px;">
               Certificates of deposit are a different product from regular savings -
               bond-like, fixed term, no early withdrawal, sold in limited issuances.
               Both this and a bank's regular savings rate above can be accurate at once.
